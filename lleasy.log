@@ -1,0 +1,12 @@
+2023-07-20 07:26:40,801 - log.py[line:25] - INFO: Info
+2023-07-20 07:26:40,801 - log.py[line:28] - WARNING: warning
+2023-07-20 07:26:40,801 - log.py[line:31] - ERROR: error
+2023-07-20 07:26:40,801 - log.py[line:34] - ERROR: critical
+2023-07-20 07:29:16,369 - log.py[line:25] - INFO - log -: Info
+2023-07-20 07:29:16,369 - log.py[line:28] - WARNING - log -: warning
+2023-07-20 07:29:16,369 - log.py[line:31] - ERROR - log -: error
+2023-07-20 07:29:16,369 - log.py[line:34] - ERROR - log -: critical
+2023-07-20 07:30:55,418 - log.py[line:25] - log - INFO: Info
+2023-07-20 07:30:55,418 - log.py[line:28] - log - WARNING: warning
+2023-07-20 07:30:55,418 - log.py[line:31] - log - ERROR: error
+2023-07-20 07:30:55,418 - log.py[line:34] - log - ERROR: critical
