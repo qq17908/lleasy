@@ -88,7 +88,7 @@ class Strategy():
     # 年化波动率
     def _cal_Algorithm_volatility(self):
         ret = self.trades_df['total_rtn']
-        volatility = ret.rolling(250).std().np.sqrt(250)
+        volatility = ret.std().np.sqrt(250)
         self.trades_df['volatility'] = volatility
         avg_volatility = self.trades_df['volatility'].mean()
 
@@ -119,7 +119,7 @@ class Strategy():
     # 夏普比率 sharpe ratio
     def _cal_SharpeRatio(self):
         total_ret = self.trades_df['total_rtn']
-        roll_yearly_return = total_ret.rolling(250).mean() * 250
+        roll_yearly_return = total_ret.mean() * 250
         self.trades_df['sharp'] = (roll_yearly_return - 0.04) / self.trades_df['volatility']
 
         avg_sharp = self.trades_df['sharp'].mean()
