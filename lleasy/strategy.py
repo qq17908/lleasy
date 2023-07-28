@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 class Strategy():
     def __init__():
@@ -21,78 +22,123 @@ class Strategy():
         10. 贝塔
 
     参数：
-        trades_df -> pd.DataFrame 
+        symbol_asset_basic -> dict
             包含每个交易日的交易数据,主要包括内容：
-            0. datetime     交易日期
+            0. date         交易日期
             1. symbol       标的编号
             2. price        买入卖出价格（元）
             3. num          买入卖出数量（手数）
-            4. serviceMoney 交易服务费
-            5. totalNum     持仓数量
-            6. cash         持有现金
+            4. serviceMoney 交易服务费（元）
+            5. totalNum     持仓数量（手）
+            6. cash         持有现金（元）
             7. value        资产总价值 = 持有现金 + 持有标的的价值
-        benchmarks_df ->pd.DataFrame
+
+        bars_data_df -> DataFrame
             包含基准标的的‘close’行情数据，主要包括内容：
-            0.datetime
-            1.benchmark_close : 基准标的close行情数据
-        start_date -> datetime  回测开始日期
-        end_date -> datetime    回测结束日期
-        investCash -> float     起始资金
+            1. date   - 日期
+            2. symbol - 标的编号
+            3. close  - 当日收盘价
+            4. benchmark - 基准标的
+            5. bmk_close - 基准当日收盘价
 
     返回值：
-        trades_df -> pd.DataFrame
-            1. rtn -> 每日收益率
+        result_df -> Dict
+            symbol、
+            today_date、today_close、today_value、hold_days、profite、profite_ratio、rtn%、annual_rtn%、avg_volatility、max_drawdown、sharpe
+            benchmark、bmk_rtn、bmk_annual_rtn、alpha、beta
     """
-    def cal_Statistics(self,trades_df,benchmarks_df,start_date,end_date) -> pd.DataFrame:
-        # 总交易天数、总交易月数、总交易年数
-        bt_start_date = start_date
-        bt_end_date = end_date
+    def cal_Statistics(
+            self,
+            symbol_asset_basic: dict = None,
+            bars_data_df: DataFrame = None,
+        ) -> dict:
 
-        # 总交易天数
-        self.total_days = (end_date - start_date).days
-        # 总交易月数
-        self.total_months = int(np.round(self.total_days/30))
-        # 总交易年数
-        self.total_years = self.total_days / 365
-        # 起始资金
-        self.total_invest = trades_df.iloc[0].cash
-        # 最后总资产
-        self.final_value = trades_df.iloc[-1].value
+        symbol_bar_df = bars_data_df[['datetime','symbol','close']]
+        symbol_bar_df = symbol_bar_df.set_index(['datetime'])
 
-        self.trades_df = trades_df
+        symbol_bar_df['num'] = symbol_asset_basic['num']
+        benchmark_bar_df = bars_data_df[['datetime','close']]
+        benchmark_bar_df = benchmark_bar_df.set_index(['datetime'])
 
-    # 基准年化收益率、基准每日收益
-    def _cal_Reference_Returns(benchmarks:pd.DataFrame):
-        pass
+        symbol = symbol_asset_basic['symbol']
+        today_date = symbol_bar_df.index[-1]
+        today_close = symbol_bar_df['close'].iloc[-1]
+        today_value = today_close * symbol_asset_basic['num']
 
-    # 每日收益率 = T日总资产 / T-1日总资产
-    def _cal_Rtn(self) -> float:
-        rtn = (self.trades_df['value'] / self.trades_df['value'].shift(1)) - 1
-        self.trades_df['rtn'] = rtn
+        hold_days = symbol_bar_df.index[-1] - symbol_bar_df.index[0]
+        profite = today_value - symbol_asset_basic['value']
+        profite_ratio = (today_value - symbol_asset_basic['value']) / symbol_asset_basic['value']
 
-    # 策略每日收益率
-    def _cal_Total_Returns(self) -> float:
-        self.trades_df['caption'] = self.trades_df.iloc[0].cash
-        self.trades_df['total_rtn'] = self.trades_df['value'] / self.trades_df['caption'] - 1
+        # 标的
+        ## 每日收益率
+        symbol_bar_df['rtn'] = symbol_bar_df['close'] / symbol_bar_df['close'].shift(1) - 1
+        symbol_bar_df['rtn'] = pd.to_numeric(symbol_bar_df['rtn'],downcast='float')
+        rtn = symbol_bar_df['rtn'].iloc[-1]
 
-        total_rtn = self.trades_df['total_rtn'].iloc[-1]
-        return total_rtn
+        ## 年化收益率
+        year_par = (symbol_bar_df.index - symbol_bar_df.index[0]).days / 250
+        symbol_bar_df['annual_rtn'] = (1 + symbol_bar_df['rtn']) ** (1 / year_par) - 1
+        symbol_bar_df['annual_rtn'] = pd.to_numeric(symbol_bar_df['annual_rtn'],downcast='float')
+        annual_rtn = symbol_bar_df['annual_rtn'].iloc[-1]
 
-    # 策略年化收益率 Total Annualized Returns
-    def _cal_Total_Annualized_Returns(self) -> float:
-        ys_ = self.total_days / 250
-        self.trades_df['annual_rtn'] = (self.trades_df['total_rtn'] + 1 ) * (1/ys_) - 1
-        annual_rtn = self.trades_df['annual_rtn'].iloc[-1]
-        return annual_rtn
+        ## 年化波动率
+        symbol_bar_df['value'] = symbol_asset_basic['num'] * symbol_bar_df['close']
+        symbol_bar_df['value'].iloc[0] = symbol_asset_basic['value']
+        symbol_bar_df['value'] = pd.to_numeric(symbol_bar_df['value'], downcast='float')
+        
+        ret = (symbol_bar_df['value'] / symbol_bar_df['value'].shift(1)) - 1
+        volatility = ret.std() * np.sqrt(250)
+        symbol_bar_df['volatility'] = volatility
+        avg_volatility = symbol_bar_df['volatility'].mean()
 
-    # 年化波动率
-    def _cal_Algorithm_volatility(self):
-        ret = self.trades_df['total_rtn']
-        volatility = ret.std().np.sqrt(250)
-        self.trades_df['volatility'] = volatility
-        avg_volatility = self.trades_df['volatility'].mean()
+        ## 夏普比率
+        symbol_bar_df['sharp'] = (symbol_bar_df['annual_rtn'] - 0.04) / symbol_bar_df['volatility']
+        sharp = symbol_bar_df['sharp'].mean()
 
-        return  avg_volatility
+        ## 最大回撤
+
+        # 基准(股票：000300、ETF：对应的指数)
+        ## 每日收益率
+        benchmark_bar_df['rtn'] = benchmark_bar_df['close'] / benchmark_bar_df['close'].shift(1)  - 1
+        benchmark_bar_df['rtn'] = pd.to_numeric(benchmark_bar_df['rtn'],downcast='float')
+        bmk_rtn = benchmark_bar_df['rtn'].iloc[-1]
+
+        ## 年化收益率
+        bmk_year_par = (benchmark_bar_df.index - benchmark_bar_df.index[0]).days / 250
+        benchmark_bar_df['annual_rtn'] = (1 + benchmark_bar_df['rtn']) ** (1 / bmk_year_par) - 1
+        bmk_annual_rtn = benchmark_bar_df['annual_rtn'].iloc[-1]
+
+        ## 贝塔
+        beta_cov = symbol_bar_df['rtn'].cov(benchmark_bar_df['rtn'])
+        beta_var = symbol_bar_df['rtn'].var()
+        symbol_bar_df['beta'] = beta_cov / beta_var
+        beta = symbol_bar_df['beta'].mean()
+
+        ## 阿尔法
+        symbol_bar_df['alpha'] = (symbol_bar_df['annual_rtn'] - 0.04) \
+                                - symbol_bar_df['beta'] * (benchmark_bar_df['annual_rtn'] - 0.04)
+        alpha = symbol_bar_df['alpha'].mean()
+
+        #返回值
+        statistics = {
+            'symbol':symbol,
+            'today_date':today_date,
+            'today_close':today_close,
+            'today_value':today_value,
+            'hold_days':hold_days,
+            'profite':profite,
+            'profite_ratio':'{:0.3%}'.format(profite_ratio),
+            'rtn':'{:0.5%}'.format(rtn),
+            'annual_rtn':'{:0.5%}'.format(annual_rtn),
+            'avg_volatility':'{:0.5%}'.format(avg_volatility),
+            'sharp':'{:0.5%}'.format(sharp),
+            'bmk_rtn':'{:0.5%}'.format(bmk_rtn),
+            'bmk_annual_rtn':'{:0.5%}'.format(bmk_annual_rtn),
+            'alpha':'{:0.5%}'.format(alpha),
+            'beta':'{:0.5%}'.format(beta)
+        }
+
+        return statistics
 
     # 月度历史收益率
     def _cal_Month_Returns():
@@ -115,35 +161,3 @@ class Strategy():
         mdd_during = max_dd_end - max_dd_start
 
         return mdd_rate
-
-    # 夏普比率 sharpe ratio
-    def _cal_SharpeRatio(self):
-        total_ret = self.trades_df['total_rtn']
-        roll_yearly_return = total_ret.mean() * 250
-        self.trades_df['sharp'] = (roll_yearly_return - 0.04) / self.trades_df['volatility']
-
-        avg_sharp = self.trades_df['sharp'].mean()
-
-        return avg_sharp
-
-    # 卡尔玛比率 calmar ratio
-    def _cal_CalmarRatio(self):
-        pass
-
-    # 阿尔法 alpha
-    def _cal_Alpha(self):
-        pass
-    
-    # 贝塔 beta
-    def _cal_Beta(self):
-        pass
-
-
-class Reports():
-    def __init__(self) -> None:
-        pass
-
-    def report():
-        pass
-
-
