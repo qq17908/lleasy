@@ -31,3 +31,18 @@ class Log():
     
     def critical(self, message) -> None:
         self.logger.error(message)
+
+def log_decorator(log):
+    def decorator(func):
+        def inner_wrapper(*args, **kwargs):
+            log.info(f'[lleasy][INFO]:{func.__name__}')
+            try:
+                result_log = func(*args, **kwargs)
+            except Exception as err_desc:
+                log.error(f'[lleasy][ERROR]->{func.__name__}')
+                log.error(err_desc)
+            else:
+                log.info(f'[lleasy][INFO]->{func.__name__}')
+                return result_log
+        return inner_wrapper
+    return decorator

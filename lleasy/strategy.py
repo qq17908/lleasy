@@ -3,6 +3,8 @@
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from lleasy.log import Log,log_decorator
+log = Log("strategy_log")
 
 class Strategy():
     def __init__():
@@ -47,6 +49,7 @@ class Strategy():
             today_date、today_close、today_value、hold_days、profite、profite_ratio、rtn%、annual_rtn%、avg_volatility、max_drawdown、sharpe
             benchmark、bmk_rtn、bmk_annual_rtn、alpha、beta
     """
+    @log_decorator(log)
     def cal_Statistics(
             self,
             symbol_asset_basic: dict = None,
