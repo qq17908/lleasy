@@ -8,7 +8,7 @@ log = Log("strategy_log")
 
 class Strategy:
     def __init__(self):
-        print("init()")
+        pass
 
     """
     说明：根据策略交易记录，对本次策略进行回归分析，分析内容包括：

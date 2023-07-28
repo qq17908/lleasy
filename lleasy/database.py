@@ -14,7 +14,7 @@ class SqliteDatabase():
         local_db_type = config_dict['local_db_type']
         local_db_path = config_dict['local_db_path']
         
-        self.engine = create_engine("sqlite:///" + local_db_path, echo=False)
+        self.engine = create_engine("sqlite:///" + local_db_path, echo=True, echo_pool="debug", hide_parameters=True)
         self.session = Session(self.engine)
     
     def getDBSession(self) -> Session:
