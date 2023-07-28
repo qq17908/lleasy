@@ -1,7 +1,9 @@
 /.DS_Store
 /.idea
 /.vscode
-/jupyter_examples
-/test
-/lleasy/__pycache__/*
-/lleasy.log
+/jupyter_examples/*.ipynb
+/test/*.py
+*.pyc
+*.log
+*.DS_Store
+*.sql
