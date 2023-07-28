@@ -3,4 +3,5 @@
 /.vscode
 /jupyter_examples
 /test
-/lleasy/__pycache__
+/lleasy/__pycache__/*
+/lleasy.log
