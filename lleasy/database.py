@@ -1,13 +1,20 @@
 # coding=utf-8
 
+from lleasy.config import Config
 from sqlalchemy import create_engine,select,insert
 from sqlalchemy.orm import Session
 from lleasy.object import TradeData,BarData
+import pandas as pd
 
 # 数据源管理
 class SqliteDatabase():
-    def __init__(self,path) -> None:
-        self.engine = create_engine("sqlite:///" + path, echo=True)
+    def __init__(self) -> None:
+        config = Config()
+        config_dict = config.get_config('datasource_file')
+        local_db_type = config_dict['local_db_type']
+        local_db_path = config_dict['local_db_path']
+        
+        self.engine = create_engine("sqlite:///" + local_db_path, echo=True)
         self.session = Session(self.engine)
     
     def getDBSession(self) -> Session:
@@ -16,6 +23,20 @@ class SqliteDatabase():
     def load_bar_data(self) -> list:
         result = self.session.query(BarData).all()
         return result
+
+    def get_symbol_bars_bySEDate(self, symbol, start_date, end_date) -> pd.DataFrame:
+        bars = self.session.query(BarData)\
+                .where(BarData.symbol==symbol)\
+                .where(BarData.datetime >= start_date)\
+                .where(BarData.datetime <= end_date)\
+                .all()
+
+        symbol_bars = [bar.to_dict() for bar in bars]
+        symbol_bars=pd.DataFrame(
+                                symbol_bars,
+                                columns=['datetime','symbol','open','close','high','low']
+                                )
+        return symbol_bars
 
     def save_bar_data(self, bars) -> bool:
         try:

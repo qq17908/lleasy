@@ -6,9 +6,9 @@ from pandas import DataFrame
 from lleasy.log import Log,log_decorator
 log = Log("strategy_log")
 
-class Strategy():
-    def __init__():
-        pass
+class Strategy:
+    def __init__(self):
+        print("init()")
 
     """
     说明：根据策略交易记录，对本次策略进行回归分析，分析内容包括：
