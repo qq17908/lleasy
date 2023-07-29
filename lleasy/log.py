@@ -1,5 +1,6 @@
 # coding=utf-8
 import logging
+from functools import wraps
 
 class Log():
     def __init__(self,name) -> None:
@@ -34,6 +35,7 @@ class Log():
 
 def log_decorator(log):
     def decorator(func):
+        @wraps(func)
         def inner_wrapper(*args, **kwargs):
             log.info(f'[lleasy][INFO]:{func.__name__}')
             try:
