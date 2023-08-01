@@ -32,6 +32,7 @@ class SqliteDatabase():
                 .all()
 
         symbol_bars = [bar.to_dict() for bar in bars]
+
         symbol_bars=pd.DataFrame(
                                 symbol_bars,
                                 columns=['datetime','symbol','open','close','high','low']
