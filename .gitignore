@@ -2,7 +2,9 @@
 /.idea
 /.vscode
 /jupyter_examples/*.ipynb
+/jupyter_examples/*
 /test/*.py
+/test/*
 *.pyc
 *.log
 *.DS_Store
