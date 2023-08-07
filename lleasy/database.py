@@ -3,7 +3,7 @@
 from lleasy.config import Config
 from sqlalchemy import create_engine,select,insert
 from sqlalchemy.orm import Session
-from lleasy.object import TradeData,BarData
+from lleasy.object import TradeData,BarData,BarDataOverview
 import pandas as pd
 
 # 数据源管理
@@ -65,8 +65,16 @@ class SqliteDatabase():
             self.session.rollback()
             raise
 
-    def init_bar_overview(self) -> None:
+    #更新llbaroverview表示数据
+    def update_bar_overview(self) -> None:
+        # 删除baroverview表数据
+        llbar = self.session.query(BarData)
+        # 查询llbardata数据，将查询结果插入baroverview表
+
         pass
 
-    def get_bar_overview()  -> list:
-        pass
+    #返回llbaroverview所有数据
+    def get_bar_overview(self)  -> list:
+        llbaroverview = self.session.query(BarDataOverview).all()
+        llbaroverview_dict = [baroverview.to_dict() for baroverview in llbaroverview]
+        return llbaroverview_dict

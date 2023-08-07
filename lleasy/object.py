@@ -54,7 +54,7 @@ class BarDataOverview:
         if "_sa_instance_state" in dict_:
             del dict_["_sa_instance_state"]
         return dict_
-    
+
 @mapper_registry.mapped
 class TradeData:
     __tablename__ = 'lltrade'
