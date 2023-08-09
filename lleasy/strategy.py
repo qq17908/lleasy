@@ -57,10 +57,12 @@ class Strategy:
         ) -> dict:
 
         symbol_bar_df = bars_data_df[['datetime','symbol','close']]
+        symbol_bar_df['close'] = symbol_bar_df['close'].astype(float)
         symbol_bar_df = symbol_bar_df.set_index(['datetime'])
 
         symbol_bar_df['num'] = symbol_asset_basic['num']
         benchmark_bar_df = bars_data_df[['datetime','close']]
+        benchmark_bar_df['close'] = benchmark_bar_df['close'].astype(float)
         benchmark_bar_df = benchmark_bar_df.set_index(['datetime'])
 
         symbol = symbol_asset_basic['symbol']

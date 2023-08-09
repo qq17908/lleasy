@@ -5,6 +5,7 @@
 /jupyter_examples/*
 /test/*.py
 /test/*
+/data/*.db
 *.pyc
 *.log
 *.DS_Store
