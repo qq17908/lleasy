@@ -18,7 +18,7 @@ class SqliteDatabase():
         local_db_path = config_dict['local_db_path']
 
         local_db_path = ROOT_PATH + local_db_path
-        print(local_db_path)
+
         self.engine = create_engine("sqlite:///" + local_db_path, echo=True, echo_pool="debug", hide_parameters=True)
         self.session = Session(self.engine)
     
