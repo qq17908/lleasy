@@ -1,15 +1,24 @@
 # coding=utf-8
 import logging
 from functools import wraps
+from lleasy.config import Config
+import os
+
+ROOT_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir))
 
 class Log():
     def __init__(self,name) -> None:
+        config = Config()
+        config_dict = config.get_config('trade_log_files')
+        trade_log_files_path = config_dict['trade_log_files_path']
+        trade_log_files_path = ROOT_PATH + trade_log_files_path
+
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level=logging.DEBUG)
 
         self.formatter = logging.Formatter('%(asctime)s - %(filename)s[line:%(lineno)d] - %(module)s - %(levelname)s: %(message)s')
         # 文件输出
-        self.file_handler = logging.FileHandler('lleasy.log')
+        self.file_handler = logging.FileHandler(trade_log_files_path)
         self.file_handler.setLevel(level=logging.INFO)
         self.file_handler.setFormatter(self.formatter)
 
