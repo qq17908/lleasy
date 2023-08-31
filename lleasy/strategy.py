@@ -1,5 +1,4 @@
 # coding=utf-8
-
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -145,10 +144,6 @@ class Strategy:
 
         return statistics
 
-    # 月度历史收益率
-    def _cal_Month_Returns():
-        pass
-
     # 最大回撤 max drawdown
     def _cal_Max_Drawdown(self):
         #np.argmax作用：取出数组中最大值对应的索引
@@ -160,7 +155,7 @@ class Strategy:
             max_dd_start = 0
         else:
             max_dd_start = np.argmax(self.trades_df['value'][:max_dd_end])
-        
+
         mdd = self.trades_df['value'][max_dd_start] - self.trades_df['value'][max_dd_end]
         mdd_rate = mdd / self.trades_df['value'][max_dd_start]
         mdd_during = max_dd_end - max_dd_start

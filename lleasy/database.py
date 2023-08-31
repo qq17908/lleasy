@@ -29,6 +29,7 @@ class SqliteDatabase():
         result = self.session.query(BarData).all()
         return result
 
+    # 查询单个标的行情数据
     def get_symbol_bars_bySEDate(self, symbol, start_date, end_date) -> pd.DataFrame:
         bars = self.session.query(BarData)\
                 .where(BarData.symbol==symbol)\
@@ -42,6 +43,24 @@ class SqliteDatabase():
                                 symbol_bars,
                                 columns=['datetime','symbol','open','close','high','low']
                                 )
+        return symbol_bars
+
+    # 同时查询多个标的行情数据
+    def get_symbols_bars(self, symbols:list, start_date, end_date) -> pd.DataFrame:
+        stmt = select(BarData)\
+            .where(BarData.symbol.in_(symbols))\
+            .where(BarData.datetime >= start_date)\
+            .where(BarData.datetime <= end_date)
+        
+        bars = self.session.scalars(stmt).all()
+
+        symbol_bars = [bar.to_dict() for bar in bars]
+
+        symbol_bars=pd.DataFrame(
+                                symbol_bars,
+                                columns=['datetime','symbol','open','close','high','low']
+                                )
+
         return symbol_bars
 
     def save_bar_data(self, bars) -> bool:

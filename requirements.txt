@@ -2,3 +2,5 @@ numpy
 pandas
 sqlachemy
 plotly
+quantstats
+talib
