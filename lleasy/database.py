@@ -1,7 +1,8 @@
 # coding=utf-8
 import os
 from lleasy.config import Config
-from sqlalchemy import create_engine,select,insert
+from sqlalchemy import create_engine,select,insert,delete
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from lleasy.object import TradeData,BarData,BarDataOverview
 import pandas as pd
@@ -70,6 +71,10 @@ class SqliteDatabase():
                 bars
             )
             self.session.commit()
+
+            ##更新llbaroverview表示数据
+            self.update_bar_overview()
+
             return True
         except:
             self.session.rollback()
@@ -92,10 +97,23 @@ class SqliteDatabase():
     #更新llbaroverview表示数据
     def update_bar_overview(self) -> None:
         # 删除baroverview表数据
-        llbar = self.session.query(BarData)
-        # 查询llbardata数据，将查询结果插入baroverview表
+        stmt_del = delete(BarDataOverview)
 
-        pass
+        stmt_select = select(
+            BarData.symbol,BarData.interval,
+            func.count(BarData.symbol).label('count'),
+            func.min(BarData.datetime).label('start'),
+            func.max(BarData.datetime).label('end'),
+            BarData.asset)\
+            .group_by(BarData.symbol,BarData.interval)
+        # 查询llbardata数据，将查询结果插入baroverview表
+        stmt_insert = insert(BarDataOverview)\
+            .from_select(['symbol','interval','count','start','end','asset'],stmt_select)
+        
+        with self.engine.connect() as conn:
+            result = conn.execute(stmt_del)
+            result = conn.execute(stmt_insert)
+            conn.commit()
 
     #返回llbaroverview所有数据
     def get_bar_overview(self)  -> list:
