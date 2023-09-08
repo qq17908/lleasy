@@ -7,6 +7,6 @@
 /test/*
 /data/*.db
 *.pyc
-*.log
+lleasy.log
 *.DS_Store
 *.sql
