@@ -4,3 +4,4 @@ sqlachemy
 plotly
 quantstats
 talib
+XTestRunner
